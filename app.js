@@ -703,6 +703,19 @@ function displayTicker(ticker) {
   return ticker.replace(/\.(SZ|SS|BJ)$/i, "");
 }
 
+function shortCompanyName(company) {
+  const name = String(company || "");
+  if (name.length <= 7) return name;
+  const cjk = (name.match(/[\u4e00-\u9fff]/g) || []).length;
+  const limit = cjk >= name.length / 2 ? 7 : 14;
+  return name.length > limit ? name.slice(0, limit) + "…" : name;
+}
+
+function tickerLabel(ticker) {
+  const stock = stockByTicker.get(ticker);
+  return stock ? `${displayTicker(ticker)} ${stock.company}` : displayTicker(ticker);
+}
+
 function formatPercent(value) {
   if (!Number.isFinite(value)) return "—";
   const sign = value > 0 ? "+" : "";
@@ -977,18 +990,21 @@ function renderGraph(visibleStocks) {
     if (state.selected && state.selected !== stock.ticker && !connectedToSelection.has(stock.ticker)) group.classList.add("is-dimmed");
 
     group.appendChild(createSvg("rect", {
-      x: position.x - 34,
-      y: position.y - 17,
-      width: 68,
-      height: 34,
+      x: position.x - 38,
+      y: position.y - 20,
+      width: 76,
+      height: 40,
       rx: 4,
       fill: sectorColors[stock.category] || "#687d86"
     }));
-    const label = createSvg("text", { x: position.x, y: position.y - 4, class: "node-ticker" });
+    const label = createSvg("text", { x: position.x, y: position.y - 6, class: "node-ticker" });
     label.textContent = displayTicker(stock.ticker);
     group.appendChild(label);
+    const nameLabel = createSvg("text", { x: position.x, y: position.y + 4, class: "node-company" });
+    nameLabel.textContent = shortCompanyName(stock.company);
+    group.appendChild(nameLabel);
     const nodeQuote = getQuote(stock.ticker);
-    const changeLabel = createSvg("text", { x: position.x, y: position.y + 9, class: "node-change" });
+    const changeLabel = createSvg("text", { x: position.x, y: position.y + 13, class: "node-change" });
     changeLabel.textContent = nodeQuote ? formatPercent(nodeQuote.changePercent) : "--";
     group.appendChild(changeLabel);
     const statusClass = researchStatusClass(stock.status);
@@ -1273,14 +1289,14 @@ function renderDetail(visibleStocks) {
       <div class="related-list">
         ${connections.map((relation) => {
           const otherTicker = relation.from === selected.ticker ? relation.to : relation.from;
-          return `<button type="button" class="related-item" data-select="${otherTicker}"><strong>${displayTicker(otherTicker)}</strong><span>${escapeHtml(relation.type)} · ${escapeHtml(relation.label)}</span></button>`;
+          return `<button type="button" class="related-item" data-select="${otherTicker}"><strong>${escapeHtml(tickerLabel(otherTicker))}</strong><span>${escapeHtml(relation.type)} · ${escapeHtml(relation.label)}</span></button>`;
         }).join("") || "<p>暂无显式关联</p>"}
       </div>
     </section>
     <section class="detail-section">
       <h3>同板块</h3>
       <div class="peer-grid">
-        ${peers.map((peer) => `<button type="button" class="peer-button" data-select="${peer.ticker}"><strong>${displayTicker(peer.ticker)}</strong><span>${escapeHtml(peer.market)} · ${escapeHtml(peer.role)}</span></button>`).join("") || "<p>暂无同板块标的</p>"}
+        ${peers.map((peer) => `<button type="button" class="peer-button" data-select="${peer.ticker}"><strong>${displayTicker(peer.ticker)}</strong><span>${escapeHtml(peer.company)} · ${escapeHtml(peer.role)}</span></button>`).join("") || "<p>暂无同板块标的</p>"}
       </div>
     </section>`;
   panel.querySelectorAll("[data-select]").forEach((button) => {
@@ -1355,7 +1371,7 @@ function renderList(visibleStocks) {
           ${sectorStocks.map((stock) => {
             const quote = getQuote(stock.ticker);
             return `<button type="button" class="stock-row" data-select="${stock.ticker}">
-              <strong>${displayTicker(stock.ticker)}</strong><div><p><span class="market-mini">${escapeHtml(stock.market)}</span>${escapeHtml(stock.role)}</p></div><span class="row-quote ${quote ? quoteClass(quote.changePercent) : "quote-flat"}">${quote ? formatPercent(quote.changePercent) : "—"}</span>
+              <strong>${displayTicker(stock.ticker)}</strong><div><p><span class="market-mini">${escapeHtml(stock.market)}</span><span class="row-name">${escapeHtml(stock.company)}</span><span class="row-role">${escapeHtml(stock.role)}</span></p></div><span class="row-quote ${quote ? quoteClass(quote.changePercent) : "quote-flat"}">${quote ? formatPercent(quote.changePercent) : "—"}</span>
             </button>`;
           }).join("")}
         </section>`;
@@ -1662,7 +1678,7 @@ function renderPolicy() {
                 }).join("") || "<span>暂无可用事件条目</span>"}
               </div>
               <div class="policy-ticker-list">
-                ${mappedStocks.slice(0, 6).map((stock) => `<button type="button" data-policy-ticker="${escapeHtml(stock.ticker)}">${escapeHtml(displayTicker(stock.ticker))}</button>`).join("") || "<span>暂无直接映射</span>"}
+                ${mappedStocks.slice(0, 6).map((stock) => `<button type="button" data-policy-ticker="${escapeHtml(stock.ticker)}">${escapeHtml(tickerLabel(stock.ticker))}</button>`).join("") || "<span>暂无直接映射</span>"}
               </div>
             </article>`;
           }).join("")}
@@ -1836,7 +1852,7 @@ function renderPolicy() {
             <p>${escapeHtml(mapping.text || "")}</p>
             <div class="policy-mapping-count"><strong>${mappedStocks.length}</strong><span>只关联股票池标的</span></div>
             <div class="policy-ticker-list">
-              ${mappedStocks.slice(0, 8).map((stock) => `<button type="button" data-policy-ticker="${escapeHtml(stock.ticker)}">${escapeHtml(displayTicker(stock.ticker))}</button>`).join("") || "<span>暂无直接映射</span>"}
+              ${mappedStocks.slice(0, 8).map((stock) => `<button type="button" data-policy-ticker="${escapeHtml(stock.ticker)}">${escapeHtml(tickerLabel(stock.ticker))}</button>`).join("") || "<span>暂无直接映射</span>"}
             </div>
           </article>`;
         }).join("")}
@@ -2120,7 +2136,7 @@ function renderDiscoveryPaperItem(paper) {
     <div class="discovery-mini-tags">
       <span>${escapeHtml(paper.published || "日期未知")}</span>
       <span>${escapeHtml(paper.topic || "AI论文")}</span>
-      ${mapped.map((ticker) => `<span>${displayTicker(ticker)}</span>`).join("")}
+      ${mapped.map((ticker) => `<span>${escapeHtml(tickerLabel(ticker))}</span>`).join("")}
     </div>
   </article>`;
 }
@@ -2137,7 +2153,7 @@ function renderDiscoverySignalItem(signal) {
     <div class="discovery-mini-tags">
       <span>${escapeHtml(signal.date || "日期未知")}</span>
       <span>${escapeHtml(signal.sourceType || "signal")}</span>
-      ${mapped.map((ticker) => `<span>${displayTicker(ticker)}</span>`).join("")}
+      ${mapped.map((ticker) => `<span>${escapeHtml(tickerLabel(ticker))}</span>`).join("")}
     </div>
   </article>`;
 }
@@ -2212,7 +2228,7 @@ function renderDecisionPanel(visibleStocks) {
     <div class="decision-hero-card">
       <span>今日决策</span>
       <h2>${propose.length ? `${propose.length} 个建议新增` : "今天暂无建议新增"}</h2>
-      <p>${topObserve.length ? `观察候选：${topObserve.map((candidate) => displayTicker(candidate.ticker)).join(" / ")}` : "没有新的池外观察候选。"} ${inPool.length ? `池内强化 ${inPool.length} 只。` : ""}</p>
+      <p>${topObserve.length ? `观察候选：${topObserve.map((candidate) => `${displayTicker(candidate.ticker)}${candidate.company ? " " + candidate.company : ""}`).join(" / ")}` : "没有新的池外观察候选。"} ${inPool.length ? `池内强化 ${inPool.length} 只。` : ""}</p>
     </div>
     <div class="decision-card">
       <span>主动发现</span>
