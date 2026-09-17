@@ -813,6 +813,7 @@ function renderStatusFilters() {
   container.querySelectorAll("button").forEach((button) => {
     button.addEventListener("click", () => {
       state.status = button.dataset.value;
+      activateView("listView");
       renderAll();
     });
   });
