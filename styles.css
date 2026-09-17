@@ -927,6 +927,17 @@ button {
 
 .stock-node .node-ticker {
   font-size: 10px;
+  font-weight: 700;
+}
+
+.node-company {
+  fill: rgba(255, 255, 255, 0.78);
+  font-size: 7.5px;
+  font-weight: 500;
+}
+
+.stock-node .node-company {
+  fill: rgba(255, 255, 255, 0.78);
 }
 
 .stock-node .node-change {
@@ -1593,6 +1604,16 @@ tbody tr:hover {
 
 .stock-row:first-of-type {
   border-top: 0;
+}
+
+.stock-row .row-name {
+  color: #26343a;
+  font-weight: 650;
+  margin-right: 6px;
+}
+
+.stock-row .row-role {
+  color: #7d898f;
 }
 
 .stock-row:hover strong {
