@@ -389,10 +389,16 @@ button {
   font-variant-numeric: tabular-nums;
 }
 
-.status-filter button:hover,
-.status-filter button.is-active {
+.status-filter button:hover {
   background: #edf2f4;
   color: var(--ink);
+}
+
+.status-filter button.is-active {
+  background: #e2e8eb;
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .status-dot {
