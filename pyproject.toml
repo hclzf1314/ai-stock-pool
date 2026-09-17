@@ -1,2 +1,11 @@
+[project]
+name = "ai-stock-pool"
+version = "1.0.0"
+description = "AI industry-chain stock pool with US/A-share mapping"
+requires-python = ">=3.11"
+dependencies = [
+    "curl-cffi==0.13.0",
+]
+
 [tool.vercel]
 entrypoint = "api.health:handler"
