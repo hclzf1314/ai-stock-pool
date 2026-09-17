@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from http.server import BaseHTTPRequestHandler
 
-from server import CACHE_TTL_SECONDS, MARKET_COUNTS, SYMBOLS
+from server_lib import CACHE_TTL_SECONDS, MARKET_COUNTS, SYMBOLS
 
 
 class handler(BaseHTTPRequestHandler):
