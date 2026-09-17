@@ -5,7 +5,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 
-from server import get_quotes
+from server_lib import get_quotes
 
 
 class handler(BaseHTTPRequestHandler):
